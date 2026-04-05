@@ -9,24 +9,34 @@ import Game from "@/services/game";
 import { FaRedo } from "react-icons/fa";
 import { createGrid } from "@/utils/createGrid";
 import { getRandomCell } from "@/utils/rand";
+import Options from "./Options";
 
 const model = new QLearning();
 const initDirection = Direction.Right;
 const initRows = 5;
 const initCols = 5;
-const initFood = getRandomCell(initRows, initCols);
 const startPos = { r: 2, c: 2 };
+// const initFood = getRandomCell(initRows, initCols);
+const initFood = { r: 1, c: 1 };
 const initSnake = [
 	// { r: Math.floor(rows / 2), c: Math.floor(cols / 2) },
 	startPos,
 	{ ...startPos, c: startPos.c - 1 },
 ];
 
-export default function Grid() {
+export default function Grid({
+	autoMode,
+	setAutoMode,
+	gameOver,
+	setGameOver,
+}: {
+	autoMode: boolean;
+	setAutoMode: React.Dispatch<React.SetStateAction<boolean>>;
+	gameOver: boolean;
+	setGameOver: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
 	const interval = useRef<NodeJS.Timeout | null>(null);
-	const [autoMode, setAutoMode] = useState(true);
 	const nextDirectionQueue = useRef<Direction[]>([]);
-	const [gameOver, setGameOver] = useState(false);
 	const [points, setPoints] = useState(0);
 
 	const [food, setFood] = useState<CellLocation>(initFood);
@@ -147,102 +157,24 @@ export default function Grid() {
 	}
 
 	return (
-		<main className="w-max mx-auto flex flex-col gap-2">
-			<div
-				className={
-					"rounded-2xl p-4 flex flex-col items-center gap-3 justify-center text-center " +
-					(gameOver ? "bg-[#ffdd88]" : "bg-[#f3f3f3]")
-				}
-			>
-				<div className="flex gap-2 items-center justify-center flex-wrap">
-					<h1 className="text-2xl font-bold">RL SNAKE</h1>
+		<main className="w-max max-w-screen mx-auto flex flex-col gap-2">
+			<Options
+				autoMode={autoMode}
+				colsState={colsState}
+				gameOver={gameOver}
+				points={points}
+				restartHandler={restartHandler}
+				rowsState={rowsState}
+				setAutoMode={setAutoMode}
+				setColsState={setColsState}
+				setRowsState={setRowsState}
+			/>
 
-					<div className="flex items-center border border-black/20 justify-center rounded-full bg-[#ebebeb]/80 overflow-hidden font-semibold text-xs">
-						<button
-							className={
-								"px-2 py-1 cursor-pointer hover:opacity-80 transition-all duration-300 " +
-								(autoMode
-									? "bg-black text-white rounded-full"
-									: "rounded-xs")
-							}
-							disabled={autoMode}
-							onClick={() => setAutoMode(true)}
-						>
-							Auto
-						</button>
-						<button
-							className={
-								"px-2 py-1 cursor-pointer hover:opacity-80 transition-all duration-300 " +
-								(!autoMode
-									? "bg-black text-white rounded-full"
-									: "rounded-xs")
-							}
-							disabled={!autoMode}
-							onClick={() => setAutoMode(false)}
-						>
-							Manual
-						</button>
-					</div>
-				</div>
-
-				<div className="">
-					<div className="">
-						<label htmlFor="rows">Rows</label>
-						<input
-							id="rows"
-							type="range"
-							min={5}
-							max={12}
-							step={1}
-							onChange={(e) =>
-								setRowsState(parseInt(e.target.value))
-							}
-						/>
-					</div>
-
-					<div className="">
-						<label htmlFor="cols">Rows</label>
-						<input
-							id="cols"
-							type="range"
-							min={5}
-							max={12}
-							step={1}
-							onChange={(e) =>
-								setColsState(parseInt(e.target.value))
-							}
-						/>
-					</div>
-				</div>
-				<div className="flex items-center justify-center w-full gap-2">
-					<p className="bg-amber-500 text-white font-semibold px-2 py-1 rounded-md">
-						Points: {points}
-					</p>
-
-					{gameOver ? (
-						<p className="font-semibold text-white flex-1 rounded-full bg-red-500/70 px-2 py-1 ">
-							Game Over!
-						</p>
-					) : null}
-
-					<button
-						aria-label="Restart"
-						onClick={restartHandler}
-						className="bg-blue-400 font-semibold text-white p-2 rounded-md cursor-pointer"
-					>
-						<FaRedo />
-					</button>
-				</div>
-			</div>
-
-			<div
+			<section
 				style={{
 					gridTemplateColumns: `repeat(${grid[0].length}, 1fr)`,
 				}}
-				className={
-					`grid gap-0 rounded-2xl h-max max-h-[95vh] overflow-hidden transition-opacity duration-300 ` +
-					(gameOver ? "opacity-80" : "opacity-100")
-				}
+				className={`grid gap-0 rounded-2xl h-max  overflow-hidden transition-opacity duration-300 `}
 			>
 				{grid.map((row, r) =>
 					row.map((_, c) => {
@@ -274,7 +206,7 @@ export default function Grid() {
 						);
 					}),
 				)}
-			</div>
+			</section>
 		</main>
 	);
 }

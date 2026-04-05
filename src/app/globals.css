@@ -29,3 +29,27 @@ body {
 	font-family: var(--font-poppins), Arial, Helvetica, sans-serif;
 	min-height: 100vh;
 }
+
+@keyframes autoModeAnim {
+	0% {
+		background: rgb(104, 12, 209);
+	}
+	33% {
+		background: rgb(86, 0, 199);
+	}
+	66% {
+		background: rgb(0, 22, 150);
+	}
+	100% {
+		background: rgb(104, 12, 209);
+	}
+}
+
+.auto-mode-anim {
+	animation-name: autoModeAnim;
+	animation-direction: normal;
+	animation-iteration-count: infinite;
+	animation-duration: 5s;
+	/* animation-fill-mode: forwards; */
+	animation-timing-function: ease;
+}
