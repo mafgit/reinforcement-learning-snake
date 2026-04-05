@@ -1,5 +1,5 @@
+import { CellLocation } from "@/types/CellLocation";
 import { Direction, directions } from "@/types/Direction";
-import { SnakePart } from "@/types/SnakePart";
 
 export enum Action {
 	Continue = 0,
@@ -40,7 +40,7 @@ export function runAction(headDirection: Direction) {
 }
 
 export function moveSnake(
-	prevSnakeParts: SnakePart[],
+	prevSnakeParts: CellLocation[],
 	headDirection: Direction,
 	rows: number,
 	cols: number,
@@ -102,10 +102,24 @@ export function moveSnake(
 
 	// updatedSnake.pop();
 
-	const updatedSnake = [updatedHead, ...prevSnakeParts.slice(0, -1)];
+	const ateFood = updatedHead.r === food.r && updatedHead.c === food.c;
+	let updatedSnake;
+	if (!ateFood) {
+		updatedSnake = [updatedHead, ...prevSnakeParts.slice(0, -1)];
+	} else {
+		updatedSnake = [updatedHead, ...prevSnakeParts];
+	}
 
-	let ateFood = false;
-	if (updatedHead.r === food.r && updatedHead.c === food.c) ateFood = true;
+	// collided check (if updated head direction is one away from any other part while also direction is towards it)
+	const rest = updatedSnake.slice(1);
+	let collided = false;
 
-	return { updatedSnake, ateFood };
+	for (const part of rest) {
+		if (updatedHead.r - part.r === 0 && updatedHead.c === part.c) {
+			collided = true;
+			break;
+		}
+	}
+
+	return { updatedSnake, ateFood, collided };
 }

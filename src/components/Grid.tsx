@@ -1,31 +1,34 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useEffectEvent } from "react";
 import Cell from "./Cell";
 import { moveSnake, runAction } from "@/utils/model";
 import { Direction } from "@/types/Direction";
-import { SnakePart } from "@/types/SnakePart";
 import { getRandomCell } from "@/utils/rand";
+import { CellLocation } from "@/types/CellLocation";
 
 interface Props {
 	grid: null[][];
 }
 
 export default function Grid({ grid }: Props) {
-	const [food, setFood] = useState({ r: 2, c: 2 });
+	const [food, setFood] = useState<CellLocation>({ r: 2, c: 2 });
 	const interval = useRef<NodeJS.Timeout | null>(null);
-	const [autoMode, setAutoMode] = useState(false);
+	const [autoMode, setAutoMode] = useState(true);
+	const nextDirectionQueue = useRef<Direction[]>([]);
+	const [gameOver, setGameOver] = useState(false);
+	const [points, setPoints] = useState(0);
 
 	const rows = grid.length;
 	const cols = grid[0].length;
 
 	// [head, ..., ..., ..., tail]
 	const startPos = { r: 3, c: 4 };
-	const [snakeParts, setSnakeParts] = useState<SnakePart[]>([
+	const [snakeParts, setSnakeParts] = useState<CellLocation[]>([
 		// { r: Math.floor(rows / 2), c: Math.floor(cols / 2) },
 		startPos,
 		{ ...startPos, c: startPos.c - 1 },
-		{ ...startPos, c: startPos.c - 1 },
+		{ ...startPos, c: startPos.c - 2 },
 	]);
 
 	const headDirection = useRef<Direction>(Direction.Right);
@@ -40,72 +43,89 @@ export default function Grid({ grid }: Props) {
 		return false;
 	}
 
-	function keyPressHandler(e: KeyboardEvent) {
+	const tick = useEffectEvent(() => {
+		setSnakeParts((prevSnakeParts) => {
+			const { updatedSnake, ateFood, collided } = moveSnake(
+				prevSnakeParts,
+				headDirection.current,
+				rows,
+				cols,
+				food,
+			);
+
+			if (ateFood) {
+				setFood(getRandomCell(rows, cols));
+				setPoints((p) => p + 10);
+			}
+
+			if (collided) {
+				setGameOver(true);
+				alert("Game over!");
+			}
+			return updatedSnake;
+		});
+
+		if (autoMode) headDirection.current = runAction(headDirection.current);
+		else {
+			const queuedDirection = nextDirectionQueue.current.shift();
+			if (typeof queuedDirection !== "undefined") {
+				headDirection.current = queuedDirection;
+			}
+		}
+	});
+
+	const keyPressHandler = useEffectEvent((e: KeyboardEvent) => {
 		if (e.key === "ArrowUp") {
 			if (
 				headDirection.current === Direction.Left ||
 				headDirection.current === Direction.Right
 			)
-				headDirection.current = Direction.Up;
+				nextDirectionQueue.current.push(Direction.Up);
 		} else if (e.key === "ArrowRight") {
 			if (
 				headDirection.current === Direction.Up ||
 				headDirection.current === Direction.Down
 			)
-				headDirection.current = Direction.Right;
+				nextDirectionQueue.current.push(Direction.Right);
 		} else if (e.key === "ArrowDown") {
 			if (
 				headDirection.current === Direction.Left ||
 				headDirection.current === Direction.Right
 			)
-				headDirection.current = Direction.Down;
+				nextDirectionQueue.current.push(Direction.Down);
 		} else if (e.key === "ArrowLeft") {
 			if (
 				headDirection.current === Direction.Up ||
 				headDirection.current === Direction.Down
 			)
-				headDirection.current = Direction.Left;
+				nextDirectionQueue.current.push(Direction.Left);
 		}
-	}
+	});
 
 	useEffect(() => {
-		if (!autoMode) window.addEventListener("keyup", keyPressHandler);
-		else window.removeEventListener("keyup", keyPressHandler);
+		if (!gameOver) {
+			if (!autoMode) window.addEventListener("keyup", keyPressHandler);
+			else window.removeEventListener("keyup", keyPressHandler);
+		}
 
 		return () => {
 			window.removeEventListener("keyup", keyPressHandler);
 		};
-	}, [autoMode]);
+	}, [autoMode, gameOver]);
 
 	useEffect(() => {
 		if (interval.current !== null) clearInterval(interval.current);
-
-		function tick() {
-			setSnakeParts((prevSnakeParts) => {
-				const { updatedSnake, ateFood } = moveSnake(
-					prevSnakeParts,
-					headDirection.current,
-					rows,
-					cols,
-					food,
-				);
-
-				if (ateFood) setFood(getRandomCell(rows, cols));
-
-				return updatedSnake;
-			});
-			if (autoMode)
-				headDirection.current = runAction(headDirection.current);
+		if (!gameOver) {
+			interval.current = setInterval(tick, 300);
 		}
-		interval.current = setInterval(tick, 300);
-
 		return () => {
 			if (interval.current !== null) clearInterval(interval.current);
 		};
-	}, [autoMode, rows, cols]);
+	}, [gameOver]);
 
 	return (
 		<main>
+			<p>Points: {points}</p>
 			<div
 				style={{
 					gridTemplateColumns: `repeat(${grid[0].length}, 1fr)`,
@@ -128,6 +148,10 @@ export default function Grid({ grid }: Props) {
 								cellContainsSnake={cellContainsSnake}
 								isHead={isHead}
 								isFood={food.r === r && food.c === c}
+								autoMode={autoMode}
+								r={r}
+								c={c}
+								setFood={setFood}
 							/>
 						);
 					}),

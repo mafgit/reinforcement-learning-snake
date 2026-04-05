@@ -1,11 +1,22 @@
+import { CellLocation } from "@/types/CellLocation";
+import { Dispatch, SetStateAction } from "react";
+
 export default function Cell({
 	isFood,
 	cellContainsSnake,
 	isHead,
+	r,
+	c,
+	setFood,
+	autoMode,
 }: {
 	isFood: boolean;
 	cellContainsSnake: boolean;
 	isHead: boolean;
+	r: number;
+	c: number;
+	setFood: React.Dispatch<SetStateAction<CellLocation>>;
+	autoMode: boolean;
 }) {
 	let additionalClasses = "";
 
@@ -30,18 +41,26 @@ export default function Cell({
 
 	return (
 		<div
+			onClick={() => autoMode && setFood({ r, c })}
 			className={
-				`bg-white/50 aspect-square border ` +
+				`bg-white/50 aspect-square border hover:opacity-90 ` +
 				(!cellContainsSnake ? "border-black/10" : " border-transparent")
 			}
 		>
 			<div
 				className={
-					"w-full h-full hover:opacity-90 transition-all text-xs p-2 duration-300 ease-out flex items-center justify-center " +
+					"w-full h-full transition-all text-xs p-2 duration-300 ease-out flex items-center justify-center " +
 					additionalClasses
 				}
 			>
-				{isFood ? "🍎" : ""}
+				<p
+					className={
+						"transition-all duration-300 " +
+						(isFood ? `opacity-100 scale-100` : `opacity-0 scale-0`)
+					}
+				>
+					🍎
+				</p>
 			</div>
 		</div>
 	);
