@@ -1,8 +1,8 @@
 import Grid from "@/components/Grid";
 
 export default function Home() {
-	const r = 10;
-	const c = 10;
+	const r = 5;
+	const c = 5;
 	const grid = [];
 
 	for (let i = 0; i < c; i++) {

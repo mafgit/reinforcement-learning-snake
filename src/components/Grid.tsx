@@ -2,14 +2,17 @@
 
 import { useEffect, useState, useRef, useEffectEvent } from "react";
 import Cell from "./Cell";
-import { moveSnake, runAction } from "@/utils/model";
+import QLearning from "@/utils/model";
 import { Direction } from "@/types/Direction";
 import { getRandomCell } from "@/utils/rand";
 import { CellLocation } from "@/types/CellLocation";
+import Game from "@/utils/Game";
 
 interface Props {
 	grid: null[][];
 }
+
+const model = new QLearning();
 
 export default function Grid({ grid }: Props) {
 	const [food, setFood] = useState<CellLocation>({ r: 2, c: 2 });
@@ -18,6 +21,7 @@ export default function Grid({ grid }: Props) {
 	const nextDirectionQueue = useRef<Direction[]>([]);
 	const [gameOver, setGameOver] = useState(false);
 	const [points, setPoints] = useState(0);
+	const headDirection = useRef<Direction>(Direction.Right);
 
 	const rows = grid.length;
 	const cols = grid[0].length;
@@ -31,7 +35,9 @@ export default function Grid({ grid }: Props) {
 		{ ...startPos, c: startPos.c - 2 },
 	]);
 
-	const headDirection = useRef<Direction>(Direction.Right);
+	const game = useRef(
+		new Game(rows, cols, Direction.Right, snakeParts, food),
+	);
 
 	function doesCellContainSnake(r: number, c: number) {
 		for (let i = 0; i < snakeParts.length; i++) {
@@ -44,17 +50,14 @@ export default function Grid({ grid }: Props) {
 	}
 
 	const tick = useEffectEvent(() => {
-		setSnakeParts((prevSnakeParts) => {
-			const { updatedSnake, ateFood, collided } = moveSnake(
-				prevSnakeParts,
-				headDirection.current,
-				rows,
-				cols,
-				food,
-			);
+		if (autoMode) {
+			const { updatedSnake, ateFood, collided, newFood, newDirection } =
+				model.run(game.current);
+			setSnakeParts(updatedSnake);
+			headDirection.current = newDirection;
 
 			if (ateFood) {
-				setFood(getRandomCell(rows, cols));
+				if (newFood) setFood(newFood);
 				setPoints((p) => p + 10);
 			}
 
@@ -62,11 +65,7 @@ export default function Grid({ grid }: Props) {
 				setGameOver(true);
 				alert("Game over!");
 			}
-			return updatedSnake;
-		});
-
-		if (autoMode) headDirection.current = runAction(headDirection.current);
-		else {
+		} else {
 			const queuedDirection = nextDirectionQueue.current.shift();
 			if (typeof queuedDirection !== "undefined") {
 				headDirection.current = queuedDirection;

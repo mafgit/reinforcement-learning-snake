@@ -16,7 +16,7 @@ export default class QLearning {
 
 	learningRate: number;
 	discountFactor: number; // future consideration / gamma
-	greediness: number; // epsilon
+	randomness: number; // epsilon
 
 	constructor() {
 		this.Q = [];
@@ -29,7 +29,7 @@ export default class QLearning {
 
 		this.learningRate = 0.1;
 		this.discountFactor = 0.1;
-		this.greediness = 1;
+		this.randomness = 1;
 
 		for (let i = 0; i < Math.pow(2, this.stateCount); i++) {
 			this.Q[i] = [0, 0, 0];
@@ -38,7 +38,7 @@ export default class QLearning {
 		// this.currentState = this.getDecimalKeyForState(initialState);
 	}
 
-	private getDecimalKeyForState(state: number[]): number {
+	private getDecimalKeyForState(state: (number | boolean)[]): number {
 		console.assert(state.length === this.stateCount);
 		let stateKeyDecimal = 0;
 		for (let i = 0; i < state.length; i++) {
@@ -48,11 +48,12 @@ export default class QLearning {
 		return stateKeyDecimal;
 	}
 
-	run(game: Game, currentState: number[]) {
+	run(game: Game) {
 		let action;
+		const currentState = game.getCurrentState();
 		const stateKeyDecimal = this.getDecimalKeyForState(currentState);
 
-		if (Math.random() < this.greediness) {
+		if (Math.random() < this.randomness) {
 			// explore (pick random)
 			action =
 				this.actions[Math.floor(Math.random() * this.actions.length)];
@@ -70,24 +71,46 @@ export default class QLearning {
 			action = this.actions[maxArg];
 		}
 
-		const newState = game.turnHeadDirection(action);
+		const newDirection = game.turnHeadDirection(action);
+		const { updatedSnake, ateFood, collided, newFood } =
+			game.moveSnakeOneStep();
+
+		let reward = 0;
+		if (collided) reward = -15;
+		else if (ateFood) reward = 10;
+
+		const newState = game.getCurrentState();
 		const newStateKeyDecimal = this.getDecimalKeyForState(newState);
 		// this.currentState = newState;
 
-		this.updateQ(stateKeyDecimal, action, newStateKeyDecimal);
+		this.updateQ(reward, stateKeyDecimal, action, newStateKeyDecimal);
 
-		return { action, newState };
+		// if collided decrease epsilon for next game/episode
+		if (collided) this.decayEpsilon();
+
+		return { ateFood, collided, updatedSnake, newFood, newDirection };
 	}
 
-	private updateQ(s: number, a: number, newS: number) {
+	private decayEpsilon() {
+		this.randomness = Math.min(0.05, this.randomness * 0.98);
+	}
+
+	private updateQ(
+		reward: number,
+		state: number,
+		action: number,
+		newState: number,
+	) {
 		let maxQForNewState = 0;
-		for (const x of this.Q[newS]) {
+		for (const x of this.Q[newState]) {
 			if (x > maxQForNewState) maxQForNewState = x;
 		}
 
-		this.Q[s][a] =
-			this.Q[s][a] +
+		this.Q[state][action] =
+			this.Q[state][action] +
 			this.learningRate *
-				(this.discountFactor * maxQForNewState - this.Q[s][a]);
+				(reward +
+					this.discountFactor * maxQForNewState -
+					this.Q[state][action]);
 	}
 }

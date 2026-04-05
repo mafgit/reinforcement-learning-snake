@@ -1,6 +1,7 @@
 import { CellLocation } from "@/types/CellLocation";
 import { Action } from "./model";
 import { Direction, directions } from "@/types/Direction";
+import { getRandomCell } from "./rand";
 
 export default class Game {
 	headDirection: number;
@@ -87,11 +88,14 @@ export default class Game {
 
 		const ateFood =
 			updatedHead.r === this.food.r && updatedHead.c === this.food.c;
+
+		let newFood: null | CellLocation = null;
 		let updatedSnake;
 		if (!ateFood) {
 			updatedSnake = [updatedHead, ...this.snakeParts.slice(0, -1)];
 		} else {
 			updatedSnake = [updatedHead, ...this.snakeParts];
+			newFood = getRandomCell(this.rows, this.cols);
 		}
 
 		// collided check (if updated head direction is one away from any other part while also direction is towards it)
@@ -106,7 +110,7 @@ export default class Game {
 		}
 
 		this.snakeParts = updatedSnake;
-		return { updatedSnake, ateFood, collided };
+		return { updatedSnake, ateFood, collided, newFood };
 	}
 
 	getCurrentState() {
