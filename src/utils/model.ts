@@ -1,5 +1,4 @@
-import { CellLocation } from "@/types/CellLocation";
-import { Direction, directions } from "@/types/Direction";
+import Game from "./Game";
 
 export enum Action {
 	Continue = 0,
@@ -7,119 +6,88 @@ export enum Action {
 	Anticlockwise,
 }
 
-const actions = [Action.Continue, Action.Clockwise, Action.Anticlockwise];
+// Actions: Continue, Clockwise, Anticlockwise
+// States: Direction Up, Right, Down, Left, Danger Ahead, Danger Clockwise, Danger Anticlockwise, Food Ahead, Food Clockwise, Food Behind, Food Anticlockwise
 
-export function getAction(): Action {
-	const action = actions[Math.floor(Math.random() * actions.length)];
-	return action;
-}
+export default class QLearning {
+	Q: [number, number, number][];
+	actions: Action[];
+	stateCount: number;
 
-export function runAction(headDirection: Direction) {
-	const action = getAction();
+	learningRate: number;
+	discountFactor: number; // future consideration / gamma
+	greediness: number; // epsilon
 
-	let newDirection = headDirection;
+	constructor() {
+		this.Q = [];
+		this.actions = [
+			Action.Continue,
+			Action.Clockwise,
+			Action.Anticlockwise,
+		];
+		this.stateCount = 11;
 
-	switch (action) {
-		case Action.Clockwise:
-			newDirection = headDirection + 1;
-			if (newDirection >= directions.length) {
-				newDirection = 0;
-			}
-			break;
-		case Action.Anticlockwise:
-			newDirection = headDirection - 1;
-			if (newDirection < 0) {
-				newDirection = directions.length - 1;
-			}
-			break;
-		case Action.Continue:
-			break;
-	}
+		this.learningRate = 0.1;
+		this.discountFactor = 0.1;
+		this.greediness = 1;
 
-	return newDirection;
-}
-
-export function moveSnake(
-	prevSnakeParts: CellLocation[],
-	headDirection: Direction,
-	rows: number,
-	cols: number,
-	food: { r: number; c: number },
-) {
-	// move head forward only
-	const oldHead = { ...prevSnakeParts[0] };
-	const updatedHead = { ...oldHead };
-
-	switch (headDirection) {
-		case Direction.Up:
-			updatedHead.r -= 1;
-			if (updatedHead.r < 0) {
-				updatedHead.r = rows - 1;
-			}
-			break;
-
-		case Direction.Right:
-			updatedHead.c += 1;
-			if (updatedHead.c >= cols) {
-				updatedHead.c = 0;
-			}
-			break;
-
-		case Direction.Down:
-			updatedHead.r += 1;
-			if (updatedHead.r >= rows) {
-				updatedHead.r = 0;
-			}
-			break;
-
-		case Direction.Left:
-			updatedHead.c -= 1;
-			if (updatedHead.c < 0) {
-				updatedHead.c = cols - 1;
-			}
-			break;
-
-		default:
-			throw new Error("Invalid direction");
-	}
-
-	// const updatedSnake = [updatedHead];
-
-	// // rest of the part follows each empty space ahead
-	// let follow = { ...oldHead };
-	// const rest = prevSnakeParts.slice(1);
-
-	// for (let i = 0; i < rest.length; i++) {
-	// 	let part = { ...rest[i] };
-
-	// 	// swap
-	// 	const temp = { ...part };
-	// 	part = { ...follow };
-	// 	follow = { ...temp };
-
-	// 	updatedSnake.push(part);
-	// }
-
-	// updatedSnake.pop();
-
-	const ateFood = updatedHead.r === food.r && updatedHead.c === food.c;
-	let updatedSnake;
-	if (!ateFood) {
-		updatedSnake = [updatedHead, ...prevSnakeParts.slice(0, -1)];
-	} else {
-		updatedSnake = [updatedHead, ...prevSnakeParts];
-	}
-
-	// collided check (if updated head direction is one away from any other part while also direction is towards it)
-	const rest = updatedSnake.slice(1);
-	let collided = false;
-
-	for (const part of rest) {
-		if (updatedHead.r - part.r === 0 && updatedHead.c === part.c) {
-			collided = true;
-			break;
+		for (let i = 0; i < Math.pow(2, this.stateCount); i++) {
+			this.Q[i] = [0, 0, 0];
 		}
+
+		// this.currentState = this.getDecimalKeyForState(initialState);
 	}
 
-	return { updatedSnake, ateFood, collided };
+	private getDecimalKeyForState(state: number[]): number {
+		console.assert(state.length === this.stateCount);
+		let stateKeyDecimal = 0;
+		for (let i = 0; i < state.length; i++) {
+			stateKeyDecimal += state[i] ? Math.pow(2, state.length - i - 1) : 0;
+		}
+
+		return stateKeyDecimal;
+	}
+
+	run(game: Game, currentState: number[]) {
+		let action;
+		const stateKeyDecimal = this.getDecimalKeyForState(currentState);
+
+		if (Math.random() < this.greediness) {
+			// explore (pick random)
+			action =
+				this.actions[Math.floor(Math.random() * this.actions.length)];
+		} else {
+			// exploit (pick based on learning)
+
+			const actions = this.Q[stateKeyDecimal];
+			let maxArg = 0;
+			for (let i = 1; i < actions.length; i++) {
+				if (actions[i] > actions[maxArg]) {
+					maxArg = i;
+				}
+			}
+
+			action = this.actions[maxArg];
+		}
+
+		const newState = game.turnHeadDirection(action);
+		const newStateKeyDecimal = this.getDecimalKeyForState(newState);
+		// this.currentState = newState;
+
+		this.updateQ(stateKeyDecimal, action, newStateKeyDecimal);
+
+		return { action, newState };
+	}
+
+	private updateQ(s: number, a: number, newS: number) {
+		let maxQForNewState = 0;
+		for (const x of this.Q[newS]) {
+			if (x > maxQForNewState) maxQForNewState = x;
+		}
+
+		this.Q[s][a] =
+			this.Q[s][a] +
+			this.learningRate *
+				(this.discountFactor * maxQForNewState - this.Q[s][a]);
+	}
 }
