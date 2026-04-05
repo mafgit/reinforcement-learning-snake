@@ -1,4 +1,4 @@
-import Game from "./Game";
+import Game from "./game";
 
 export enum Action {
 	Continue = 0,
