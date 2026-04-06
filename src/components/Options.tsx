@@ -1,3 +1,4 @@
+import { maxCols, maxRows, minCols, minRows } from "@/constants/dimensions";
 import { FaRedo } from "react-icons/fa";
 
 interface Props {
@@ -67,9 +68,9 @@ const Options = ({
 						<input
 							id="rows"
 							type="range"
-							min={5}
+							min={minRows}
 							value={rowsState}
-							max={10}
+							max={maxRows}
 							step={1}
 							onChange={(e) =>
 								setRowsState(parseInt(e.target.value))
@@ -86,8 +87,8 @@ const Options = ({
 							id="cols"
 							type="range"
 							value={colsState}
-							min={5}
-							max={10}
+							min={minCols}
+							max={maxCols}
 							step={1}
 							onChange={(e) =>
 								setColsState(parseInt(e.target.value))

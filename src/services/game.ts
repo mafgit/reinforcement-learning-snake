@@ -11,13 +11,19 @@ export default class Game {
 	gameOver: boolean;
 	food: CellLocation;
 
-	constructor(
-		rows: number,
-		cols: number,
-		headDirection: Direction,
-		snakeParts: CellLocation[],
-		food: CellLocation,
-	) {
+	constructor({
+		rows,
+		cols,
+		headDirection,
+		snakeParts,
+		food,
+	}: {
+		rows: number;
+		cols: number;
+		headDirection: Direction;
+		snakeParts: CellLocation[];
+		food: CellLocation;
+	}) {
 		this.headDirection = headDirection;
 		this.snakeParts = snakeParts;
 		this.rows = rows;
@@ -123,7 +129,7 @@ export default class Game {
 		let collided = false;
 
 		for (const part of rest) {
-			if (updatedHead.r - part.r === 0 && updatedHead.c === part.c) {
+			if (updatedHead.r === part.r && updatedHead.c === part.c) {
 				collided = true;
 				this.gameOver = true;
 				break;
@@ -169,8 +175,8 @@ export default class Game {
 						(head.c + 1) % this.cols === part.c;
 				if (!dangerToRight)
 					dangerToRight =
-						part.r === head.r &&
-						(head.c - 1 + this.cols) % this.cols === part.c;
+						part.c === head.c &&
+						(head.r + 1) % this.rows === part.r;
 				if (!dangerToLeft)
 					dangerToLeft =
 						part.c === head.c &&
@@ -199,8 +205,8 @@ export default class Game {
 						(head.c - 1 + this.cols) % this.cols === part.c;
 				if (!dangerToRight)
 					dangerToRight =
-						part.r === head.r &&
-						(head.c + 1) % this.cols === part.c;
+						part.c === head.c &&
+						(head.r - 1 + this.rows) % this.rows === part.r;
 				if (!dangerToLeft)
 					dangerToLeft =
 						part.c === head.c &&
@@ -210,23 +216,29 @@ export default class Game {
 
 		let foodAhead = false;
 		let foodToRight = false;
-		// let foodBehind;
-		// let foodToLeft;
+		let foodBehind = false;
+		let foodToLeft = false;
 
 		if (this.headDirection === Direction.Up) {
 			foodAhead = head.r > this.food.r;
-			foodToRight = head.c > this.food.c;
-			// foodBehind = head.r < this.food.r;
-			// foodToLeft = head.c < this.food.c;
+			foodToRight = head.c < this.food.c;
+			foodBehind = head.r < this.food.r;
+			foodToLeft = head.c > this.food.c;
 		} else if (this.headDirection === Direction.Right) {
 			foodAhead = this.food.c > head.c;
 			foodToRight = this.food.r > head.r;
+			foodBehind = this.food.c < head.c;
+			foodToLeft = this.food.r < head.r;
 		} else if (this.headDirection === Direction.Down) {
 			foodAhead = head.r < this.food.r;
-			foodToRight = head.c < this.food.c;
+			foodToRight = head.c > this.food.c;
+			foodBehind = head.r > this.food.r;
+			foodToLeft = head.c < this.food.c;
 		} else if (this.headDirection === Direction.Left) {
 			foodAhead = this.food.c < head.c;
 			foodToRight = this.food.r < head.r;
+			foodBehind = this.food.c > head.c;
+			foodToLeft = this.food.r > head.r;
 		}
 
 		return [
@@ -244,8 +256,8 @@ export default class Game {
 			// food
 			foodAhead,
 			foodToRight,
-			!foodAhead,
-			!foodToRight,
+			foodBehind,
+			foodToLeft,
 		];
 	}
 }

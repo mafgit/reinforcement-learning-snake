@@ -1,4 +1,5 @@
 import Game from "./game";
+import pretrained from "../../pretrained.json";
 
 export enum Action {
 	Continue = 0,
@@ -6,20 +7,27 @@ export enum Action {
 	Anticlockwise,
 }
 
-// Actions: Continue, Clockwise, Anticlockwise
-// States: Direction Up, Right, Down, Left, Danger Ahead, Danger Clockwise, Danger Anticlockwise, Food Ahead, Food Clockwise, Food Behind, Food Anticlockwise
+// Actions: Continue (straight ahead), Clockwise (right from current direction), Anticlockwise (left from current direction)
+// States: [head direction of snake] [immediate danger relative based on action] [food location relative to head direction]
+// States: [Direction Up, Right, Down, Left] [Danger Ahead, Clockwise, Anticlockwise] [Food Ahead, Clockwise, Food Behind, Food Anticlockwise]
 
 export default class QLearning {
-	Q: [number, number, number][];
+	Q: number[][];
 	actions: Action[];
 	stateCount: number;
 
 	learningRate: number;
 	discountFactor: number; // future consideration / gamma
 	randomness: number; // epsilon
+	decay: number;
 
-	constructor() {
-		this.Q = [];
+	constructor(
+		loadPretrained = false,
+		learningRate = 0.1,
+		discountFactor = 0.85,
+		initialRandomness = 1,
+		decay = 0.98,
+	) {
 		this.actions = [
 			Action.Continue,
 			Action.Clockwise,
@@ -27,15 +35,27 @@ export default class QLearning {
 		];
 		this.stateCount = 11;
 
-		this.learningRate = 0.1;
-		this.discountFactor = 0.35;
-		this.randomness = 1;
+		let Q: number[][] = [];
 
-		for (let i = 0; i < Math.pow(2, this.stateCount); i++) {
-			this.Q[i] = [0, 0, 0];
+		if (loadPretrained) {
+			({
+				discountFactor,
+				decay,
+				randomness: initialRandomness,
+				learningRate,
+				Q,
+			} = pretrained);
+		} else {
+			for (let i = 0; i < Math.pow(2, this.stateCount); i++) {
+				Q[i] = [0, 0, 0];
+			}
 		}
 
-		// this.currentState = this.getDecimalKeyForState(initialState);
+		this.Q = Q;
+		this.learningRate = learningRate;
+		this.discountFactor = discountFactor;
+		this.randomness = initialRandomness;
+		this.decay = decay;
 	}
 
 	private getDecimalKeyForState(state: (number | boolean)[]): number {
@@ -75,8 +95,11 @@ export default class QLearning {
 			game.moveSnakeOneStep(action);
 
 		let reward = 0;
-		if (collided) reward = -15;
-		else if (ateFood) reward = 10;
+		if (collided) reward = -30;
+		else if (ateFood) reward = 15;
+		else {
+			reward = -1;
+		}
 
 		const newState = game.getCurrentState();
 		const newStateKeyDecimal = this.getDecimalKeyForState(newState);
@@ -87,14 +110,13 @@ export default class QLearning {
 		// if collided decrease epsilon for next game/episode
 		if (collided) {
 			this.decayEpsilon();
-			console.log("\n\nQ so far:\n", this.Q);
 		}
 
 		return { ateFood, collided, updatedSnake, newFood };
 	}
 
 	private decayEpsilon() {
-		this.randomness = Math.min(0.05, this.randomness * 0.98);
+		this.randomness = Math.max(0.05, this.randomness * this.decay);
 	}
 
 	private updateQ(

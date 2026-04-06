@@ -10,7 +10,7 @@ import { getRandomCell } from "@/utils/cell";
 import Options from "./Options";
 import Grid from "./Grid";
 
-const model = new QLearning();
+const model = new QLearning(true);
 const initDirection = Direction.Right;
 const initRows = 5;
 const initCols = 5;
@@ -49,7 +49,15 @@ export default function GameComponent({
 	// [head, ..., ..., ..., tail]
 	const [snakeParts, setSnakeParts] = useState<CellLocation[]>(initSnake);
 
-	const game = useRef(new Game(5, 5, Direction.Right, snakeParts, food));
+	const game = useRef(
+		new Game({
+			rows: 5,
+			cols: 5,
+			headDirection: Direction.Right,
+			snakeParts,
+			food,
+		}),
+	);
 
 	const eatingAudio = useRef<HTMLAudioElement | null>(null);
 	const hitAudio = useRef<HTMLAudioElement | null>(null);
