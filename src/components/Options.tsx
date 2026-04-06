@@ -24,7 +24,11 @@ const Options = ({
 	points,
 }: Props) => {
 	return (
-		<header className="rounded-2xl p-4 flex flex-col items-center gap-3 justify-center text-center bg-[#f3f3f3]/70 ">
+		<header
+		// style={{
+		// 	// width: "minmax(80vw, 700px)"
+		// }}
+		className="w-full rounded-2xl p-4 flex flex-col items-center gap-3 justify-center text-center bg-[#f3f3f3]/70 ">
 			<div className="flex gap-3 flex-col items-center justify-center flex-wrap">
 				<h1 className="text-2xl font-bold">SNAKE</h1>
 
@@ -65,7 +69,7 @@ const Options = ({
 							type="range"
 							min={5}
 							value={rowsState}
-							max={12}
+							max={10}
 							step={1}
 							onChange={(e) =>
 								setRowsState(parseInt(e.target.value))
@@ -83,7 +87,7 @@ const Options = ({
 							type="range"
 							value={colsState}
 							min={5}
-							max={12}
+							max={10}
 							step={1}
 							onChange={(e) =>
 								setColsState(parseInt(e.target.value))

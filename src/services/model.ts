@@ -28,7 +28,7 @@ export default class QLearning {
 		this.stateCount = 11;
 
 		this.learningRate = 0.1;
-		this.discountFactor = 0.1;
+		this.discountFactor = 0.35;
 		this.randomness = 1;
 
 		for (let i = 0; i < Math.pow(2, this.stateCount); i++) {

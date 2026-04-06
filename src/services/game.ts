@@ -8,6 +8,7 @@ export default class Game {
 	snakeParts: CellLocation[];
 	rows: number;
 	cols: number;
+	gameOver: boolean;
 	food: CellLocation;
 
 	constructor(
@@ -22,6 +23,7 @@ export default class Game {
 		this.rows = rows;
 		this.cols = cols;
 		this.food = food;
+		this.gameOver = false;
 	}
 
 	private turnHeadDirection(action: Action) {
@@ -60,6 +62,7 @@ export default class Game {
 		this.food = f;
 		this.headDirection = d;
 		this.snakeParts = s;
+		this.gameOver = false;
 	}
 
 	moveSnakeOneStep(action: Action) {
@@ -122,6 +125,7 @@ export default class Game {
 		for (const part of rest) {
 			if (updatedHead.r - part.r === 0 && updatedHead.c === part.c) {
 				collided = true;
+				this.gameOver = true
 				break;
 			}
 		}

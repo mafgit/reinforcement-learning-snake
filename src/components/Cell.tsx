@@ -54,13 +54,13 @@ export default function Cell({
 		<div
 			onClick={() => autoMode && setFood({ r, c })}
 			className={
-				`bg-white/50 flex items-center justify-center aspect-square border hover:opacity-90 ` +
-				(!cellContainsSnake ? "border-black/10" : " border-transparent")
+				`bg-white/50 w-full flex items-center justify-center aspect-square border hover:opacity-90 border-black/10 `
+				// + (!cellContainsSnake ? "border-black/10" : " border-transparent")
 			}
 		>
 			<div
 				className={
-					"transform w-[75%] h-[75%] transition-all p-2 duration-300 ease-out flex items-center justify-center " +
+					"w-[75%] h-[75%] transition-all duration-300 ease-out flex items-center justify-center " +
 					additionalClasses
 				}
 			>

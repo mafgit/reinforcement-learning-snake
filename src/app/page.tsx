@@ -1,5 +1,5 @@
 "use client";
-import Grid from "@/components/Grid";
+import GameComponent from "@/components/Game";
 import { useState } from "react";
 
 export default function Home() {
@@ -9,11 +9,11 @@ export default function Home() {
 	return (
 		<div
 			className={
-				"flex justify-center py-4 px-2 min-h-screen transition-all duration-1000 " +
+				"flex flex-col items-center w-full py-16 px-2 h-full transition-all duration-1000 " +
 				(gameOver ? "bg-red-400" : autoMode ? "auto-mode-anim bg-purple-600" : "bg-green-400")
 			}
 		>
-			<Grid
+			<GameComponent
 				autoMode={autoMode}
 				setAutoMode={setAutoMode}
 				gameOver={gameOver}
