@@ -1,4 +1,5 @@
 import { maxCols, maxRows, minCols, minRows } from "@/constants/dimensions";
+import { memo } from "react";
 import { FaPlay, FaRedo, FaStop } from "react-icons/fa";
 
 interface Props {
@@ -16,7 +17,7 @@ interface Props {
 	stop: () => void;
 }
 
-const Options = ({
+const Options = memo(function Options({
 	gameOver,
 	autoMode,
 	setAutoMode,
@@ -29,7 +30,7 @@ const Options = ({
 	resume,
 	stopped,
 	points,
-}: Props) => {
+}: Props) {
 	return (
 		<header
 			// style={{
@@ -157,6 +158,6 @@ const Options = ({
 			</div>
 		</header>
 	);
-};
+});
 
 export default Options;

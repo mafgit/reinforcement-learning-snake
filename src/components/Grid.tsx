@@ -2,6 +2,8 @@ import { CellLocation } from "@/types/CellLocation";
 import { doesCellContainSnake } from "@/utils/cell";
 import Cell from "./Cell";
 import { Direction } from "@/types/Direction";
+import { memo } from "react";
+import isEqual from "react-fast-compare";
 
 interface Props {
 	grid: null[][];
@@ -9,17 +11,17 @@ interface Props {
 	food: CellLocation;
 	autoMode: boolean;
 	updateFood: (c: CellLocation) => void;
-	headDirection: Direction
+	headDirection: Direction;
 }
 
-const Grid = ({
+const Grid = memo(function Grid({
 	grid,
 	snakeParts,
 	food,
 	autoMode,
 	headDirection,
 	updateFood,
-}: Props) => {
+}: Props) {
 	return (
 		<section
 			style={{
@@ -52,13 +54,13 @@ const Grid = ({
 						<Cell
 							key={r + "-" + c}
 							cellContainsSnake={cellContainsSnake}
+							updateFood={updateFood}
 							isHead={isHead}
 							isPartButNotHead={isPartButNotHead}
 							isTail={isTail}
 							isFood={food.r === r && food.c === c}
 							autoMode={autoMode}
 							r={r}
-							updateFood={updateFood}
 							c={c}
 							headDirection={headDirection}
 						/>
@@ -67,6 +69,6 @@ const Grid = ({
 			)}
 		</section>
 	);
-};
+}, isEqual);
 
 export default Grid;

@@ -1,5 +1,4 @@
 import Game from "./game";
-import pretrained from "../../pretrained.json";
 
 export enum Action {
 	Continue = 0,
@@ -22,7 +21,6 @@ export default class QLearning {
 	decay: number;
 
 	constructor(
-		loadPretrained = false,
 		learningRate = 0.1,
 		discountFactor = 0.85,
 		initialRandomness = 1,
@@ -35,26 +33,26 @@ export default class QLearning {
 		];
 		this.stateCount = 11;
 
-		let Q: number[][] = [];
-
-		if (loadPretrained) {
-			({
-				discountFactor,
-				decay,
-				randomness: initialRandomness,
-				learningRate,
-				Q,
-			} = pretrained);
-		} else {
-			for (let i = 0; i < Math.pow(2, this.stateCount); i++) {
-				Q[i] = [0, 0, 0];
-			}
+		this.Q = [];
+		for (let i = 0; i < Math.pow(2, this.stateCount); i++) {
+			this.Q[i] = [0, 0, 0];
 		}
+
+		this.learningRate = learningRate;
+		this.discountFactor = discountFactor;
+		this.randomness = initialRandomness;
+		this.decay = decay;
+	}
+
+	async loadPretrained() {
+		const pretrained = (await import("../../pretrained.json")).default
+
+		const { Q, learningRate, discountFactor, randomness, decay } = pretrained
 
 		this.Q = Q;
 		this.learningRate = learningRate;
 		this.discountFactor = discountFactor;
-		this.randomness = initialRandomness;
+		this.randomness = randomness;
 		this.decay = decay;
 	}
 
@@ -125,9 +123,10 @@ export default class QLearning {
 		action: number,
 		newState: number,
 	) {
-		let maxQForNewState = 0;
-		for (const x of this.Q[newState]) {
-			if (x > maxQForNewState) maxQForNewState = x;
+		let maxQForNewState = this.Q[newState][0];
+		for (let i = 1; i < this.Q[newState].length; i++) {
+			const q = this.Q[newState][i];
+			if (q > maxQForNewState) maxQForNewState = q;
 		}
 
 		this.Q[state][action] =

@@ -1,7 +1,8 @@
 import { CellLocation } from "@/types/CellLocation";
 import { Direction } from "@/types/Direction";
+import { memo } from "react";
 
-export default function Cell({
+const Cell = memo(function Cell({
 	isFood,
 	cellContainsSnake,
 	isHead,
@@ -76,4 +77,6 @@ export default function Cell({
 			</div>
 		</div>
 	);
-}
+});
+
+export default Cell

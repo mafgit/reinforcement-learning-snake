@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import QLearning, { Action } from "@/services/model";
 import { Direction } from "@/types/Direction";
 import { CellLocation } from "@/types/CellLocation";
@@ -10,7 +10,7 @@ import { getRandomCell } from "@/utils/cell";
 import Options from "./Options";
 import Grid from "./Grid";
 
-const model = new QLearning(true);
+const model = new QLearning();
 const initDirection = Direction.Right;
 const initRows = 7;
 const initCols = 7;
@@ -49,10 +49,12 @@ export default function GameComponent({
 	const [headDirection, setHeadDirection] =
 		useState<Direction>(initDirection);
 
+	const hasModelLoaded = useRef(false);
+
 	const game = useRef(
 		new Game({
-			rows: 5,
-			cols: 5,
+			rows: initRows,
+			cols: initCols,
 			headDirection: initDirection,
 			snakeParts,
 			food,
@@ -67,6 +69,16 @@ export default function GameComponent({
 	useEffect(() => {
 		eatingAudio.current = new Audio("eating.mp3");
 		hitAudio.current = new Audio("hit.mp3");
+
+		model
+			.loadPretrained()
+			.then(() => {
+				hasModelLoaded.current = true;
+			})
+			.catch((e) => {
+				console.error(e);
+				alert("There was an error loading the model");
+			});
 	}, []);
 
 	function updateUIAfterMove({
@@ -104,9 +116,10 @@ export default function GameComponent({
 		if (!stoppedRef.current && !game.current.gameOver) {
 			timeout.current = setTimeout(() => {
 				if (autoModeRef.current) {
-					const updatedUI = model.run(game.current);
-
-					updateUIAfterMove(updatedUI);
+					if (hasModelLoaded.current) {
+						const updatedUI = model.run(game.current);
+						updateUIAfterMove(updatedUI);
+					}
 				} else {
 					let queuedAction = nextActionQueue.current.shift();
 					if (typeof queuedAction === "undefined") {
@@ -124,17 +137,17 @@ export default function GameComponent({
 		}
 	}
 
-	function stop() {
+	const stop = useCallback(() => {
 		setStopped(true);
 		stoppedRef.current = true;
-	}
+	}, []);
 
-	function resume() {
+	const resume = useCallback(() => {
 		setStopped(false);
 		stoppedRef.current = false;
-	}
+	}, []);
 
-	function keyPressHandler(e: KeyboardEvent) {
+	const keyPressHandler = useCallback((e: KeyboardEvent) => {
 		if (e.key === "ArrowUp") {
 			e.stopPropagation();
 			e.preventDefault();
@@ -168,7 +181,7 @@ export default function GameComponent({
 				nextActionQueue.current.push(Action.Clockwise);
 			}
 		}
-	}
+	}, []);
 
 	useEffect(() => {
 		if (!gameOver) {
@@ -183,10 +196,10 @@ export default function GameComponent({
 		};
 	}, [autoMode, gameOver, stopped]);
 
-	function updateFood({ r, c }: CellLocation) {
+	const updateFood = useCallback(({ r, c }: CellLocation) => {
 		setFood({ r, c });
 		game.current.updateFood({ r, c });
-	}
+	}, []);
 
 	useEffect(() => {
 		tick();
@@ -196,7 +209,7 @@ export default function GameComponent({
 		};
 	}, [gameOver, stopped]);
 
-	function restartHandler() {
+	const restartHandler = useCallback(() => {
 		setPoints(0);
 		setGameOver(false);
 
@@ -214,7 +227,7 @@ export default function GameComponent({
 		rowsRef.current = rowsState;
 		colsRef.current = colsState;
 		setGrid(createGrid(rowsRef.current, colsRef.current));
-	}
+	}, [rowsState, colsState]);
 
 	return (
 		<main className="min-w-[290px] text-[#1c1c1c] flex flex-col items-center gap-2">
@@ -224,21 +237,21 @@ export default function GameComponent({
 				gameOver={gameOver}
 				points={points}
 				stopped={stopped}
+				rowsState={rowsState}
 				stop={stop}
 				resume={resume}
 				restartHandler={restartHandler}
-				rowsState={rowsState}
 				setAutoMode={setAutoMode}
 				setColsState={setColsState}
 				setRowsState={setRowsState}
 			/>
 
 			<Grid
-				autoMode={autoMode}
 				food={food}
 				grid={grid}
-				headDirection={headDirection}
 				snakeParts={snakeParts}
+				autoMode={autoMode}
+				headDirection={headDirection}
 				updateFood={updateFood}
 			/>
 		</main>

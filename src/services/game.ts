@@ -150,7 +150,8 @@ export default class Game {
 		let dangerToLeft = false;
 
 		const head = this.snakeParts[0];
-		const rest = this.snakeParts.slice(1);
+		const rest = this.snakeParts.slice(1, -1); // excluding tail too
+		// because tail would have moved away at that step
 
 		if (this.headDirection === Direction.Up) {
 			for (const part of rest) {
