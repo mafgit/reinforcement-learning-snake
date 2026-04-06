@@ -210,7 +210,7 @@ export default function GameComponent({
 		);
 
 		setFood(newFood);
-		setSnakeParts(initSnake)
+		setSnakeParts(initSnake);
 		rowsRef.current = rowsState;
 		colsRef.current = colsState;
 		setGrid(createGrid(rowsRef.current, colsRef.current));

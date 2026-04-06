@@ -1,5 +1,5 @@
 import { CellLocation } from "@/types/CellLocation";
-import { Direction } from "readline";
+import { Direction } from "@/types/Direction";
 
 export default function Cell({
 	isFood,
