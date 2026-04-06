@@ -63,6 +63,10 @@ export default function Grid({
 		return false;
 	}
 
+	useEffect(() => {
+		console.log(food, game.current.food);
+	}, [food]);
+
 	const tick = useEffectEvent(() => {
 		if (autoMode) {
 			const { updatedSnake, ateFood, collided, newFood, newDirection } =

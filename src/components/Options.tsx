@@ -93,7 +93,7 @@ const Options = ({
 					</div>
 				</div>
 			</div>
-			
+
 			<div className="flex items-center justify-center w-full gap-2">
 				<p className="bg-amber-500 text-white font-semibold px-2 py-1 rounded-md">
 					{points}

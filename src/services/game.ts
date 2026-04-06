@@ -110,6 +110,7 @@ export default class Game {
 		} else {
 			updatedSnake = [updatedHead, ...this.snakeParts];
 			newFood = getRandomCell(this.rows, this.cols);
+			this.food = newFood;
 		}
 
 		// collided check (if updated head direction is one away from any other part while also direction is towards it)
