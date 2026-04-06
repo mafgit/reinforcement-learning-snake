@@ -1,4 +1,5 @@
 import { CellLocation } from "@/types/CellLocation";
+import { Direction } from "readline";
 
 export default function Cell({
 	isFood,
@@ -7,6 +8,7 @@ export default function Cell({
 	isPartButNotHead,
 	r,
 	c,
+	headDirection,
 	autoMode,
 	updateFood,
 	isTail,
@@ -16,6 +18,7 @@ export default function Cell({
 	isHead: boolean;
 	isPartButNotHead: boolean;
 	isTail: boolean;
+	headDirection: Direction;
 	r: number;
 	updateFood: (c: CellLocation) => void;
 	c: number;
@@ -25,11 +28,10 @@ export default function Cell({
 
 	if (cellContainsSnake) {
 		if (isPartButNotHead) {
-			additionalClasses += "rounded-lg ";
 			if (isTail) {
-				additionalClasses += "bg-green-600 ";
+				additionalClasses += "bg-green-600 rounded-3xl ";
 			} else {
-				additionalClasses += "bg-green-500 ";
+				additionalClasses += "bg-green-500 rounded-lg ";
 			}
 		}
 
@@ -66,7 +68,7 @@ export default function Cell({
 				<p
 					className={
 						"transition-all duration-300 " +
-						(isFood ? `opacity-100 scale-100` : `opacity-0 scale-0`)
+						(isFood ? `opacity-90 scale-100` : `opacity-0 scale-0`)
 					}
 				>
 					🍎

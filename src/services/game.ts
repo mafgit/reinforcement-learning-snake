@@ -72,7 +72,7 @@ export default class Game {
 	}
 
 	moveSnakeOneStep(action: Action) {
-		this.turnHeadDirection(action);
+		const newDirection = this.turnHeadDirection(action);
 
 		// move head forward only
 		const oldHead = { ...this.snakeParts[0] };
@@ -137,7 +137,7 @@ export default class Game {
 		}
 
 		this.snakeParts = updatedSnake;
-		return { updatedSnake, ateFood, collided, newFood };
+		return { updatedSnake, ateFood, collided, newFood, newDirection };
 	}
 
 	updateFood({ r, c }: CellLocation) {

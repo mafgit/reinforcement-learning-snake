@@ -1,6 +1,7 @@
 import { CellLocation } from "@/types/CellLocation";
 import { doesCellContainSnake } from "@/utils/cell";
 import Cell from "./Cell";
+import { Direction } from "@/types/Direction";
 
 interface Props {
 	grid: null[][];
@@ -8,6 +9,7 @@ interface Props {
 	food: CellLocation;
 	autoMode: boolean;
 	updateFood: (c: CellLocation) => void;
+	headDirection: Direction
 }
 
 const Grid = ({
@@ -15,6 +17,7 @@ const Grid = ({
 	snakeParts,
 	food,
 	autoMode,
+	headDirection,
 	updateFood,
 }: Props) => {
 	return (
@@ -57,6 +60,7 @@ const Grid = ({
 							r={r}
 							updateFood={updateFood}
 							c={c}
+							headDirection={headDirection}
 						/>
 					);
 				}),

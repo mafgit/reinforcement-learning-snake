@@ -91,7 +91,7 @@ export default class QLearning {
 			action = this.actions[maxArg];
 		}
 
-		const { updatedSnake, ateFood, collided, newFood } =
+		const { updatedSnake, ateFood, collided, newFood, newDirection } =
 			game.moveSnakeOneStep(action);
 
 		let reward = 0;
@@ -112,7 +112,7 @@ export default class QLearning {
 			this.decayEpsilon();
 		}
 
-		return { ateFood, collided, updatedSnake, newFood };
+		return { ateFood, collided, updatedSnake, newFood, newDirection };
 	}
 
 	private decayEpsilon() {

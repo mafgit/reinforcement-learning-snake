@@ -48,12 +48,14 @@ export default function GameComponent({
 
 	// [head, ..., ..., ..., tail]
 	const [snakeParts, setSnakeParts] = useState<CellLocation[]>(initSnake);
+	const [headDirection, setHeadDirection] =
+		useState<Direction>(initDirection);
 
 	const game = useRef(
 		new Game({
 			rows: 5,
 			cols: 5,
-			headDirection: Direction.Right,
+			headDirection: initDirection,
 			snakeParts,
 			food,
 		}),
@@ -74,13 +76,16 @@ export default function GameComponent({
 		ateFood,
 		collided,
 		newFood,
+		newDirection,
 	}: {
 		updatedSnake: CellLocation[];
 		ateFood: boolean;
 		collided: boolean;
 		newFood: CellLocation | null;
+		newDirection: Direction;
 	}) {
 		setSnakeParts(updatedSnake);
+		setHeadDirection(newDirection);
 
 		if (ateFood) {
 			eatingAudio.current?.play().catch(() => {});
@@ -211,6 +216,7 @@ export default function GameComponent({
 				autoMode={autoMode}
 				food={food}
 				grid={grid}
+				headDirection={headDirection}
 				snakeParts={snakeParts}
 				updateFood={updateFood}
 			/>
