@@ -16,10 +16,7 @@ const initRows = 7;
 const initCols = 7;
 const startPos = { r: 2, c: 2 };
 const initFood = { r: 1, c: 1 };
-const initSnake = [
-	startPos,
-	{ ...startPos, c: startPos.c - 1 },
-];
+const initSnake = [startPos, { ...startPos, c: startPos.c - 1 }];
 
 export default function GameComponent({
 	autoMode,
@@ -43,6 +40,9 @@ export default function GameComponent({
 	const rowsRef = useRef(initRows);
 	const colsRef = useRef(initCols);
 	const [grid, setGrid] = useState(createGrid(initRows, initCols));
+
+	const [stopped, setStopped] = useState(true);
+	const stoppedRef = useRef(true);
 
 	// [head, ..., ..., ..., tail]
 	const [snakeParts, setSnakeParts] = useState<CellLocation[]>(initSnake);
@@ -94,13 +94,14 @@ export default function GameComponent({
 		if (collided) {
 			hitAudio.current?.play().catch(() => {});
 			setGameOver(true);
+			stop();
 		}
 	}
 
 	function tick() {
 		if (timeout.current !== null) clearTimeout(timeout.current);
 
-		if (!game.current.gameOver) {
+		if (!stoppedRef.current && !game.current.gameOver) {
 			timeout.current = setTimeout(() => {
 				if (autoModeRef.current) {
 					const updatedUI = model.run(game.current);
@@ -123,26 +124,44 @@ export default function GameComponent({
 		}
 	}
 
+	function stop() {
+		setStopped(true);
+		stoppedRef.current = true;
+	}
+
+	function resume() {
+		setStopped(false);
+		stoppedRef.current = false;
+	}
+
 	function keyPressHandler(e: KeyboardEvent) {
 		if (e.key === "ArrowUp") {
+			e.stopPropagation();
+			e.preventDefault();
 			if (game.current.headDirection === Direction.Right) {
 				nextActionQueue.current.push(Action.Anticlockwise);
 			} else if (game.current.headDirection === Direction.Left) {
 				nextActionQueue.current.push(Action.Clockwise);
 			}
 		} else if (e.key === "ArrowRight") {
+			e.stopPropagation();
+			e.preventDefault();
 			if (game.current.headDirection === Direction.Up) {
 				nextActionQueue.current.push(Action.Clockwise);
 			} else if (game.current.headDirection === Direction.Down) {
 				nextActionQueue.current.push(Action.Anticlockwise);
 			}
 		} else if (e.key === "ArrowDown") {
+			e.stopPropagation();
+			e.preventDefault();
 			if (game.current.headDirection === Direction.Right) {
 				nextActionQueue.current.push(Action.Clockwise);
 			} else if (game.current.headDirection === Direction.Left) {
 				nextActionQueue.current.push(Action.Anticlockwise);
 			}
 		} else if (e.key === "ArrowLeft") {
+			e.stopPropagation();
+			e.preventDefault();
 			if (game.current.headDirection === Direction.Up) {
 				nextActionQueue.current.push(Action.Anticlockwise);
 			} else if (game.current.headDirection === Direction.Down) {
@@ -162,7 +181,7 @@ export default function GameComponent({
 		return () => {
 			window.removeEventListener("keyup", keyPressHandler);
 		};
-	}, [autoMode, gameOver]);
+	}, [autoMode, gameOver, stopped]);
 
 	function updateFood({ r, c }: CellLocation) {
 		setFood({ r, c });
@@ -175,7 +194,7 @@ export default function GameComponent({
 		return () => {
 			if (timeout.current !== null) clearTimeout(timeout.current);
 		};
-	}, [gameOver]);
+	}, [gameOver, stopped]);
 
 	function restartHandler() {
 		setPoints(0);
@@ -191,6 +210,7 @@ export default function GameComponent({
 		);
 
 		setFood(newFood);
+		setSnakeParts(initSnake)
 		rowsRef.current = rowsState;
 		colsRef.current = colsState;
 		setGrid(createGrid(rowsRef.current, colsRef.current));
@@ -203,6 +223,9 @@ export default function GameComponent({
 				colsState={colsState}
 				gameOver={gameOver}
 				points={points}
+				stopped={stopped}
+				stop={stop}
+				resume={resume}
 				restartHandler={restartHandler}
 				rowsState={rowsState}
 				setAutoMode={setAutoMode}

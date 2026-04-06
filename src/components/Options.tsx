@@ -1,5 +1,5 @@
 import { maxCols, maxRows, minCols, minRows } from "@/constants/dimensions";
-import { FaRedo } from "react-icons/fa";
+import { FaPlay, FaRedo, FaStop } from "react-icons/fa";
 
 interface Props {
 	gameOver: boolean;
@@ -11,6 +11,9 @@ interface Props {
 	setColsState: React.Dispatch<React.SetStateAction<number>>;
 	restartHandler: () => void;
 	points: number;
+	stopped: boolean;
+	resume: () => void;
+	stop: () => void;
 }
 
 const Options = ({
@@ -22,16 +25,20 @@ const Options = ({
 	colsState,
 	setColsState,
 	restartHandler,
+	stop,
+	resume,
+	stopped,
 	points,
 }: Props) => {
 	return (
 		<header
-		// style={{
-		// 	// width: "minmax(80vw, 700px)"
-		// }}
-		className="w-full rounded-2xl p-4 flex flex-col items-center gap-3 justify-center text-center bg-[#f3f3f3]/70 ">
+			// style={{
+			// 	// width: "minmax(80vw, 700px)"
+			// }}
+			className="w-full rounded-2xl p-4 flex flex-col items-center gap-3 justify-center text-center bg-[#f3f3f3]/70 "
+		>
 			<div className="flex gap-3 flex-col items-center justify-center flex-wrap">
-				<h1 className="text-2xl font-bold">SNAKE</h1>
+				<h1 className="text-2xl font-bold">RL SNAKE</h1>
 
 				<div className="flex items-center border border-black/20 justify-center rounded-full bg-[#ebebeb]/80 overflow-hidden font-semibold text-sm">
 					<button
@@ -59,6 +66,12 @@ const Options = ({
 						MANUAL
 					</button>
 				</div>
+
+				{!autoMode ? (
+					<p className="text-xs text-gray-800">
+						(Manual works with a keyboard)
+					</p>
+				) : null}
 			</div>
 
 			<div className="w-full">
@@ -115,13 +128,32 @@ const Options = ({
 					GAME OVER!
 				</p>
 
-				<button
-					aria-label="Restart"
-					onClick={restartHandler}
-					className="bg-blue-400 font-semibold text-white p-2 rounded-md cursor-pointer"
-				>
-					<FaRedo />
-				</button>
+				{stopped ? (
+					<>
+						{!gameOver ? (
+							<button
+								onClick={resume}
+								className="bg-green-600 font-semibold text-white p-2 rounded-md cursor-pointer"
+							>
+								<FaPlay />
+							</button>
+						) : null}
+
+						<button
+							onClick={restartHandler}
+							className="bg-blue-400 font-semibold text-white p-2 rounded-md cursor-pointer"
+						>
+							<FaRedo />
+						</button>
+					</>
+				) : (
+					<button
+						onClick={stop}
+						className="bg-red-400 font-semibold text-white p-2 rounded-md cursor-pointer"
+					>
+						<FaStop />
+					</button>
+				)}
 			</div>
 		</header>
 	);

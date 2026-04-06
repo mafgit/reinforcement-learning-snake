@@ -6,7 +6,7 @@ import fs from "fs";
 const model = new QLearning();
 
 const GAMES = 1200;
-const MAX_STEPS = 500;
+const MAX_STEPS = 1000;
 
 console.log("Starting Training...");
 console.log("Games:", GAMES);
