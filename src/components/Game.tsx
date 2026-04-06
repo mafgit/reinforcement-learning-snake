@@ -12,13 +12,11 @@ import Grid from "./Grid";
 
 const model = new QLearning(true);
 const initDirection = Direction.Right;
-const initRows = 5;
-const initCols = 5;
+const initRows = 7;
+const initCols = 7;
 const startPos = { r: 2, c: 2 };
-// const initFood = getRandomCell(initRows, initCols);
 const initFood = { r: 1, c: 1 };
 const initSnake = [
-	// { r: Math.floor(rows / 2), c: Math.floor(cols / 2) },
 	startPos,
 	{ ...startPos, c: startPos.c - 1 },
 ];
