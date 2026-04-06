@@ -9,5 +9,4 @@
 # Issues
 
 - Food location in giving game state to model logic for wraparound
-- New food location inside snake
 - Snake should stop when eating

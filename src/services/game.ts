@@ -1,7 +1,7 @@
 import { CellLocation } from "@/types/CellLocation";
 import { Action } from "./model";
 import { Direction, directions } from "@/types/Direction";
-import { getRandomCell } from "../utils/cell";
+import { getNewFood } from "../utils/cell";
 
 export default class Game {
 	headDirection: number;
@@ -120,7 +120,7 @@ export default class Game {
 			updatedSnake = [updatedHead, ...this.snakeParts.slice(0, -1)];
 		} else {
 			updatedSnake = [updatedHead, ...this.snakeParts];
-			newFood = getRandomCell(this.rows, this.cols);
+			newFood = getNewFood(updatedSnake, this.rows, this.cols);
 			this.food = newFood;
 		}
 

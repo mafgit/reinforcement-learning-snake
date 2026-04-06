@@ -6,7 +6,7 @@ import { Direction } from "@/types/Direction";
 import { CellLocation } from "@/types/CellLocation";
 import Game from "@/services/game";
 import { createGrid } from "@/utils/grid";
-import { getRandomCell } from "@/utils/cell";
+import { getNewFood, getRandomCell } from "@/utils/cell";
 import Options from "./Options";
 import Grid from "./Grid";
 
@@ -213,7 +213,7 @@ export default function GameComponent({
 		setPoints(0);
 		setGameOver(false);
 
-		const newFood = getRandomCell(rowsState, colsState);
+		const newFood = getNewFood(initSnake, rowsState, colsState);
 		game.current.restart(
 			rowsState,
 			colsState,

@@ -20,3 +20,19 @@ export function getRandomCell(rows: number, cols: number) {
 		c: Math.floor(Math.random() * cols),
 	};
 }
+
+export function getNewFood(
+	snakeParts: CellLocation[],
+	rows: number,
+	cols: number,
+) {
+	let r = 2,
+		c = 2;
+
+	while (true) {
+		({ r, c } = getRandomCell(rows, cols));
+		if (!doesCellContainSnake(snakeParts, r, c)) break;
+	}
+
+	return { r, c };
+}
