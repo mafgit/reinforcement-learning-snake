@@ -125,13 +125,17 @@ export default class Game {
 		for (const part of rest) {
 			if (updatedHead.r - part.r === 0 && updatedHead.c === part.c) {
 				collided = true;
-				this.gameOver = true
+				this.gameOver = true;
 				break;
 			}
 		}
 
 		this.snakeParts = updatedSnake;
 		return { updatedSnake, ateFood, collided, newFood };
+	}
+
+	updateFood({ r, c }: CellLocation) {
+		this.food = { r, c };
 	}
 
 	getCurrentState() {
@@ -151,7 +155,7 @@ export default class Game {
 				if (!dangerToRight)
 					dangerToRight =
 						part.r === head.r &&
-						(head.c + 1 + this.cols) % this.cols === part.c;
+						(head.c + 1) % this.cols === part.c;
 				if (!dangerToLeft)
 					dangerToLeft =
 						part.r === head.r &&
@@ -162,7 +166,7 @@ export default class Game {
 				if (!dangerAhead)
 					dangerAhead =
 						part.r === head.r &&
-						(head.c + 1 + this.cols) % this.cols === part.c;
+						(head.c + 1) % this.cols === part.c;
 				if (!dangerToRight)
 					dangerToRight =
 						part.r === head.r &&
@@ -177,7 +181,7 @@ export default class Game {
 				if (!dangerAhead)
 					dangerAhead =
 						part.c === head.c &&
-						(head.r + 1 + this.rows) % this.rows === part.r;
+						(head.r + 1) % this.rows === part.r;
 				if (!dangerToRight)
 					dangerToRight =
 						part.r === head.r &&
@@ -185,22 +189,22 @@ export default class Game {
 				if (!dangerToLeft)
 					dangerToLeft =
 						part.r === head.r &&
-						(head.c + 1 + this.cols) % this.cols === part.c;
+						(head.c + 1) % this.cols === part.c;
 			}
 		} else if (this.headDirection === Direction.Left) {
 			for (const part of rest) {
 				if (!dangerAhead)
 					dangerAhead =
-						part.c === head.c &&
-						(head.r - 1 + this.rows) % this.rows === part.r;
+						part.r === head.r &&
+						(head.c - 1 + this.cols) % this.cols === part.c;
 				if (!dangerToRight)
 					dangerToRight =
 						part.r === head.r &&
-						(head.c + 1 + this.cols) % this.cols === part.c;
+						(head.c + 1) % this.cols === part.c;
 				if (!dangerToLeft)
 					dangerToLeft =
-						part.r === head.r &&
-						(head.c - 1 + this.cols) % this.cols === part.c;
+						part.c === head.c &&
+						(head.r + 1) % this.rows === part.r;
 			}
 		}
 
@@ -211,7 +215,7 @@ export default class Game {
 
 		if (this.headDirection === Direction.Up) {
 			foodAhead = head.r > this.food.r;
-			foodToRight = head.c > this.food.r;
+			foodToRight = head.c > this.food.c;
 			// foodBehind = head.r < this.food.r;
 			// foodToLeft = head.c < this.food.c;
 		} else if (this.headDirection === Direction.Right) {
@@ -219,7 +223,7 @@ export default class Game {
 			foodToRight = this.food.r > head.r;
 		} else if (this.headDirection === Direction.Down) {
 			foodAhead = head.r < this.food.r;
-			foodToRight = head.c < this.food.r;
+			foodToRight = head.c < this.food.c;
 		} else if (this.headDirection === Direction.Left) {
 			foodAhead = this.food.c < head.c;
 			foodToRight = this.food.r < head.r;

@@ -7,16 +7,22 @@ interface Props {
 	snakeParts: CellLocation[];
 	food: CellLocation;
 	autoMode: boolean;
-	setFood: React.Dispatch<React.SetStateAction<CellLocation>>;
+	updateFood: (c: CellLocation) => void;
 }
 
-const Grid = ({ grid, snakeParts, food, autoMode, setFood }: Props) => {
+const Grid = ({
+	grid,
+	snakeParts,
+	food,
+	autoMode,
+	updateFood,
+}: Props) => {
 	return (
 		<section
 			style={{
 				gridTemplateColumns: `repeat(${grid[0].length}, minmax(0px, 1fr))`,
 			}}
-			className={`grid gap-0 min-w-[290px] rounded-2xl h-max overflow-hidden transition-opacity duration-300 `}
+			className={`grid gap-0 min-w-[290px] w-full rounded-2xl h-max overflow-hidden transition-opacity duration-300 `}
 		>
 			{grid.map((row, r) =>
 				row.map((_, c) => {
@@ -49,8 +55,8 @@ const Grid = ({ grid, snakeParts, food, autoMode, setFood }: Props) => {
 							isFood={food.r === r && food.c === c}
 							autoMode={autoMode}
 							r={r}
+							updateFood={updateFood}
 							c={c}
-							setFood={setFood}
 						/>
 					);
 				}),

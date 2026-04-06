@@ -32,7 +32,7 @@ const Options = ({
 			<div className="flex gap-3 flex-col items-center justify-center flex-wrap">
 				<h1 className="text-2xl font-bold">SNAKE</h1>
 
-				<div className="flex items-center border border-black/20 justify-center rounded-full bg-[#ebebeb]/80 overflow-hidden font-semibold text-xs">
+				<div className="flex items-center border border-black/20 justify-center rounded-full bg-[#ebebeb]/80 overflow-hidden font-semibold text-sm">
 					<button
 						className={
 							"px-4 py-1 cursor-pointer hover:opacity-80 transition-all outline-none duration-300 " +
@@ -55,14 +55,14 @@ const Options = ({
 						disabled={!autoMode}
 						onClick={() => setAutoMode(false)}
 					>
-						Manual
+						MANUAL
 					</button>
 				</div>
 			</div>
 
 			<div className="w-full">
 				<div className="flex items-center text-sm justify-between gap-2 ">
-					<label htmlFor="rows">Rows</label>
+					<label htmlFor="rows">ROWS</label>
 					<div className="flex gap-2">
 						<input
 							id="rows"
@@ -80,7 +80,7 @@ const Options = ({
 				</div>
 
 				<div className="flex items-center text-sm justify-between gap-2 ">
-					<label htmlFor="cols">Columns</label>
+					<label htmlFor="cols">COLUMNS</label>
 					<div className="flex gap-2">
 						<input
 							id="cols"
@@ -111,7 +111,7 @@ const Options = ({
 							: "opacity-0 scale-0")
 					}
 				>
-					Game Over!
+					GAME OVER!
 				</p>
 
 				<button

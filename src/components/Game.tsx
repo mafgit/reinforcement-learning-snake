@@ -153,6 +153,11 @@ export default function GameComponent({
 		};
 	}, [autoMode, gameOver]);
 
+	function updateFood({ r, c }: CellLocation) {
+		setFood({ r, c });
+		game.current.updateFood({ r, c });
+	}
+
 	useEffect(() => {
 		tick();
 
@@ -181,7 +186,7 @@ export default function GameComponent({
 	}
 
 	return (
-		<main className="min-w-[290px] flex flex-col items-center gap-2">
+		<main className="min-w-[290px] text-[#1c1c1c] flex flex-col items-center gap-2">
 			<Options
 				autoMode={autoMode}
 				colsState={colsState}
@@ -198,8 +203,8 @@ export default function GameComponent({
 				autoMode={autoMode}
 				food={food}
 				grid={grid}
-				setFood={setFood}
 				snakeParts={snakeParts}
+				updateFood={updateFood}
 			/>
 		</main>
 	);

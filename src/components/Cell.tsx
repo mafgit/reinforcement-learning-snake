@@ -1,5 +1,4 @@
 import { CellLocation } from "@/types/CellLocation";
-import { SetStateAction } from "react";
 
 export default function Cell({
 	isFood,
@@ -8,8 +7,8 @@ export default function Cell({
 	isPartButNotHead,
 	r,
 	c,
-	setFood,
 	autoMode,
+	updateFood,
 	isTail,
 }: {
 	isFood: boolean;
@@ -18,8 +17,8 @@ export default function Cell({
 	isPartButNotHead: boolean;
 	isTail: boolean;
 	r: number;
+	updateFood: (c: CellLocation) => void;
 	c: number;
-	setFood: React.Dispatch<SetStateAction<CellLocation>>;
 	autoMode: boolean;
 }) {
 	let additionalClasses = "";
@@ -52,7 +51,7 @@ export default function Cell({
 
 	return (
 		<div
-			onClick={() => autoMode && setFood({ r, c })}
+			onClick={() => autoMode && updateFood({ r, c })}
 			className={
 				`bg-white/50 w-full flex items-center justify-center aspect-square border hover:opacity-90 border-black/10 `
 				// + (!cellContainsSnake ? "border-black/10" : " border-transparent")
