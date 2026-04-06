@@ -71,9 +71,8 @@ export default class QLearning {
 			action = this.actions[maxArg];
 		}
 
-		const newDirection = game.turnHeadDirection(action);
 		const { updatedSnake, ateFood, collided, newFood } =
-			game.moveSnakeOneStep();
+			game.moveSnakeOneStep(action);
 
 		let reward = 0;
 		if (collided) reward = -15;
@@ -86,9 +85,12 @@ export default class QLearning {
 		this.updateQ(reward, stateKeyDecimal, action, newStateKeyDecimal);
 
 		// if collided decrease epsilon for next game/episode
-		if (collided) this.decayEpsilon();
+		if (collided) {
+			this.decayEpsilon();
+			console.log("\n\nQ so far:\n", this.Q);
+		}
 
-		return { ateFood, collided, updatedSnake, newFood, newDirection };
+		return { ateFood, collided, updatedSnake, newFood };
 	}
 
 	private decayEpsilon() {

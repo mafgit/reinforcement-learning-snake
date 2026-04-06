@@ -2,12 +2,12 @@
 
 import { useEffect, useState, useRef, useEffectEvent } from "react";
 import Cell from "./Cell";
-import QLearning from "@/services/model";
+import QLearning, { Action } from "@/services/model";
 import { Direction } from "@/types/Direction";
 import { CellLocation } from "@/types/CellLocation";
 import Game from "@/services/game";
-import { createGrid } from "@/utils/createGrid";
-import { getRandomCell } from "@/utils/rand";
+import { createGrid } from "@/utils/grid";
+import { doesCellContainSnake, getRandomCell } from "@/utils/cell";
 import Options from "./Options";
 
 const model = new QLearning();
@@ -23,9 +23,6 @@ const initSnake = [
 	{ ...startPos, c: startPos.c - 1 },
 ];
 
-const eatingAudio = new Audio("/eating.mp3");
-const hitAudio = new Audio("/hit.mp3");
-
 export default function Grid({
 	autoMode,
 	setAutoMode,
@@ -38,11 +35,10 @@ export default function Grid({
 	setGameOver: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
 	const interval = useRef<NodeJS.Timeout | null>(null);
-	const nextDirectionQueue = useRef<Direction[]>([]);
+	const nextActionQueue = useRef<Action[]>([]);
 	const [points, setPoints] = useState(0);
 
 	const [food, setFood] = useState<CellLocation>(initFood);
-	const headDirection = useRef<Direction>(initDirection);
 
 	const [rowsState, setRowsState] = useState(initRows);
 	const [colsState, setColsState] = useState(initCols);
@@ -55,71 +51,81 @@ export default function Grid({
 
 	const game = useRef(new Game(5, 5, Direction.Right, snakeParts, food));
 
-	function doesCellContainSnake(r: number, c: number) {
-		for (let i = 0; i < snakeParts.length; i++) {
-			if (snakeParts[i].r === r && snakeParts[i].c === c) {
-				return true;
-			}
-		}
-
-		return false;
-	}
+	const eatingAudio = useRef<HTMLAudioElement | null>(null);
+	const hitAudio = useRef<HTMLAudioElement | null>(null);
 
 	useEffect(() => {
-		console.log(food, game.current.food);
-	}, [food]);
+		eatingAudio.current = new Audio("eating.mp3");
+		hitAudio.current = new Audio("hit.mp3");
+	}, []);
+
+	function updateUIAfterMove({
+		updatedSnake,
+		ateFood,
+		collided,
+		newFood,
+	}: {
+		updatedSnake: CellLocation[];
+		ateFood: boolean;
+		collided: boolean;
+		newFood: CellLocation | null;
+	}) {
+		setSnakeParts(updatedSnake);
+
+		if (ateFood) {
+			eatingAudio.current?.play().catch(() => {});
+			if (newFood) setFood(newFood);
+			setPoints((p) => p + 10);
+		}
+
+		if (collided) {
+			hitAudio.current?.play().catch(() => {});
+			setGameOver(true);
+		}
+	}
 
 	const tick = useEffectEvent(() => {
 		if (autoMode) {
-			const { updatedSnake, ateFood, collided, newFood, newDirection } =
-				model.run(game.current);
-			setSnakeParts(updatedSnake);
-			headDirection.current = newDirection;
+			const updatedUI = model.run(game.current);
 
-			if (ateFood) {
-				eatingAudio.play();
-				if (newFood) setFood(newFood);
-				setPoints((p) => p + 10);
-			}
-
-			if (collided) {
-				hitAudio.play();
-				setGameOver(true);
-				// alert("Game over!");
-			}
+			updateUIAfterMove(updatedUI);
 		} else {
-			const queuedDirection = nextDirectionQueue.current.shift();
-			if (typeof queuedDirection !== "undefined") {
-				headDirection.current = queuedDirection;
+			let queuedAction = nextActionQueue.current.shift();
+			if (typeof queuedAction === "undefined") {
+				queuedAction = Action.Continue;
 			}
+
+			const updatedUI = game.current.moveSnakeOneStep(queuedAction);
+
+			updateUIAfterMove(updatedUI);
 		}
 	});
 
 	const keyPressHandler = useEffectEvent((e: KeyboardEvent) => {
 		if (e.key === "ArrowUp") {
-			if (
-				headDirection.current === Direction.Left ||
-				headDirection.current === Direction.Right
-			)
-				nextDirectionQueue.current.push(Direction.Up);
+			if (game.current.headDirection === Direction.Right) {
+				nextActionQueue.current.push(Action.Anticlockwise);
+			} else if (game.current.headDirection === Direction.Left) {
+				nextActionQueue.current.push(Action.Clockwise);
+			}
 		} else if (e.key === "ArrowRight") {
-			if (
-				headDirection.current === Direction.Up ||
-				headDirection.current === Direction.Down
-			)
-				nextDirectionQueue.current.push(Direction.Right);
+			if (game.current.headDirection === Direction.Up) {
+				nextActionQueue.current.push(Action.Clockwise);
+			} else if (game.current.headDirection === Direction.Down) {
+				nextActionQueue.current.push(Action.Anticlockwise);
+			}
 		} else if (e.key === "ArrowDown") {
-			if (
-				headDirection.current === Direction.Left ||
-				headDirection.current === Direction.Right
-			)
-				nextDirectionQueue.current.push(Direction.Down);
+			if (game.current.headDirection === Direction.Right) {
+				nextActionQueue.current.push(Action.Clockwise);
+			} else if (game.current.headDirection === Direction.Left) {
+				nextActionQueue.current.push(Action.Anticlockwise);
+			}
 		} else if (e.key === "ArrowLeft") {
-			if (
-				headDirection.current === Direction.Up ||
-				headDirection.current === Direction.Down
-			)
-				nextDirectionQueue.current.push(Direction.Left);
+			if (game.current.headDirection === Direction.Up) {
+				nextActionQueue.current.push(Action.Anticlockwise);
+			} else if (game.current.headDirection === Direction.Down) {
+				nextActionQueue.current.push(Action.Clockwise);
+			}
 		}
 	});
 
@@ -160,12 +166,11 @@ export default function Grid({
 		setFood(newFood);
 		rowsRef.current = rowsState;
 		colsRef.current = colsState;
-		headDirection.current = initDirection;
 		setGrid(createGrid(rowsRef.current, colsRef.current));
 	}
 
 	return (
-		<main className="w-max max-w-screen mx-auto flex flex-col gap-2">
+		<main className="w-max max-w-screen mx-auto flex flex-col gap-2 p-2">
 			<Options
 				autoMode={autoMode}
 				colsState={colsState}
@@ -180,15 +185,20 @@ export default function Grid({
 
 			<section
 				style={{
-					gridTemplateColumns: `repeat(${grid[0].length}, 1fr)`,
+					gridTemplateColumns: `repeat(${grid[0].length}, minmax(0px, 1fr))`,
 				}}
-				className={`grid gap-0 rounded-2xl h-max  overflow-hidden transition-opacity duration-300 `}
+				className={`grid gap-0 rounded-2xl h-max overflow-hidden transition-opacity duration-300 `}
 			>
 				{grid.map((row, r) =>
 					row.map((_, c) => {
-						const cellContainsSnake = doesCellContainSnake(r, c);
+						const cellContainsSnake = doesCellContainSnake(
+							snakeParts,
+							r,
+							c,
+						);
 						let isHead = false;
 						let isTail = false;
+						let isPartButNotHead = false; // for collision check
 
 						if (cellContainsSnake) {
 							isHead =
@@ -197,6 +207,8 @@ export default function Grid({
 							isTail =
 								snakeParts[snakeParts.length - 1].r === r &&
 								snakeParts[snakeParts.length - 1].c === c;
+
+							isPartButNotHead = !isHead;
 						}
 
 						return (
@@ -204,6 +216,7 @@ export default function Grid({
 								key={r + "-" + c}
 								cellContainsSnake={cellContainsSnake}
 								isHead={isHead}
+								isPartButNotHead={isPartButNotHead}
 								isTail={isTail}
 								isFood={food.r === r && food.c === c}
 								autoMode={autoMode}

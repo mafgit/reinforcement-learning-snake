@@ -5,6 +5,7 @@ export default function Cell({
 	isFood,
 	cellContainsSnake,
 	isHead,
+	isPartButNotHead,
 	r,
 	c,
 	setFood,
@@ -14,6 +15,7 @@ export default function Cell({
 	isFood: boolean;
 	cellContainsSnake: boolean;
 	isHead: boolean;
+	isPartButNotHead: boolean;
 	isTail: boolean;
 	r: number;
 	c: number;
@@ -23,6 +25,15 @@ export default function Cell({
 	let additionalClasses = "";
 
 	if (cellContainsSnake) {
+		if (isPartButNotHead) {
+			additionalClasses += "rounded-lg ";
+			if (isTail) {
+				additionalClasses += "bg-green-600 ";
+			} else {
+				additionalClasses += "bg-green-500 ";
+			}
+		}
+
 		if (isHead) {
 			additionalClasses += "bg-green-300 rounded-3xl ";
 			// if (headDirection === Direction.Up) {
@@ -34,13 +45,6 @@ export default function Cell({
 			// } else if (headDirection === Direction.Left) {
 			// 	additionalClasses += " rounded-l-xl";
 			// }
-		} else {
-			additionalClasses += "rounded-lg ";
-			if (isTail) {
-				additionalClasses += "bg-green-600 ";
-			} else {
-				additionalClasses += "bg-green-500 ";
-			}
 		}
 	} else {
 		additionalClasses += "rounded-lg ";
