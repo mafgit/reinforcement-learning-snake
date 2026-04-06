@@ -6,7 +6,6 @@ import QLearning from "@/services/model";
 import { Direction } from "@/types/Direction";
 import { CellLocation } from "@/types/CellLocation";
 import Game from "@/services/game";
-import { FaRedo } from "react-icons/fa";
 import { createGrid } from "@/utils/createGrid";
 import { getRandomCell } from "@/utils/rand";
 import Options from "./Options";
@@ -23,6 +22,9 @@ const initSnake = [
 	startPos,
 	{ ...startPos, c: startPos.c - 1 },
 ];
+
+const eatingAudio = new Audio("/eating.mp3");
+const hitAudio = new Audio("/hit.mp3");
 
 export default function Grid({
 	autoMode,
@@ -75,11 +77,13 @@ export default function Grid({
 			headDirection.current = newDirection;
 
 			if (ateFood) {
+				eatingAudio.play();
 				if (newFood) setFood(newFood);
 				setPoints((p) => p + 10);
 			}
 
 			if (collided) {
+				hitAudio.play();
 				setGameOver(true);
 				// alert("Game over!");
 			}
